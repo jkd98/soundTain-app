@@ -40,8 +40,9 @@ const login = async (req, res, next) => {
 
         // Crear token y almacenarlo en cookie
         const jwtkn = generarJWT(cliente._id);
+        res.cookie('_jwtoken',jwtkn,{httpOnly:true});
         res.json({msg:"ok",jwtkn});
-        return res.cookie('_jwtoken',jwtkn,{httpOnly:true});
+        //return res.cookie('_jwtoken',jwtkn,{httpOnly:true});
     } catch (error) {
         // Atrapar error
         console.log(error);
