@@ -42,7 +42,7 @@ const corsOptions = {
         };
     }
 };
-//app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 // Routing
 /* app.get('/api/usuarios',(req,res)=>{
