@@ -9,6 +9,7 @@ import conectarDB from "./config/db.js";
 
 import clienteRouter from "./routes/clienteRoutes.js";
 import productoRouter from "./routes/productoRoutes.js";
+import authRouter from "./routes/authRoutes.js";
 
 
 // concentra la funcionalidad de express
@@ -49,7 +50,7 @@ app.use(cors(corsOptions));
     res.send('Hola mundo') //send permite mostrar info en la pantalla
     res.json({msg:'ok'}) //  respuesta tipo json para acceder a datos
 }) */
-app.use('/auth',clienteRouter);
+app.use('/auth',authRouter);
 app.use('/productos',productoRouter);
 
 
