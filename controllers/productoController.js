@@ -24,6 +24,37 @@ const aggProducto = async (req,res,next)=>{
 
 //Funcion para eliminar un producto
 
+
+
+
+//Funcion para subir imagen
+const subirImagen = async (req,res,next) => {
+    const { prod } = req.params;
+    
+    if(!prod) return next();
+    
+    
+    try {
+        const extProducto = await Producto.findById(prod);
+        console.log(req.file);
+        
+        extProducto.imagen = req.file.filename;
+        
+        await extProducto.save();
+        
+        next();
+
+    } catch (error) {
+        console.log(error);
+        res.json({msg:"No se econtro el producto"});
+        next();
+    }
+    
+
+
+};
+
 export {
-    aggProducto
+    aggProducto,
+    subirImagen
 }

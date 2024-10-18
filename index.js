@@ -10,6 +10,7 @@ import conectarDB from "./config/db.js";
 import clienteRouter from "./routes/clienteRoutes.js";
 import productoRouter from "./routes/productoRoutes.js";
 import authRouter from "./routes/authRoutes.js";
+import comentarioRouter from "./routes/comentarioRoutes.js";
 
 
 // concentra la funcionalidad de express
@@ -43,7 +44,8 @@ const corsOptions = {
         };
     }
 };
-app.use(cors(corsOptions));
+
+//app.use(cors(corsOptions));
 
 // Routing
 /* app.get('/api/usuarios',(req,res)=>{
@@ -52,7 +54,7 @@ app.use(cors(corsOptions));
 }) */
 app.use('/auth',authRouter);
 app.use('/productos',productoRouter);
-
+app.use('/coment',comentarioRouter)
 
 // puerto
 const PORT = process.env.PORT || 4000; 

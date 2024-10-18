@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 //schema
-const clienteSchema = mongoose.Schema(
+const AdminSchema = mongoose.Schema(
     {
         nombre: { type: String, required: true, trim: true },
         apellido: { type: String, required: true, trim: true },
@@ -11,7 +11,7 @@ const clienteSchema = mongoose.Schema(
         phone: { type: String, trim: true },
         token: { type: String },
         confirmado: { type: Boolean, default: false },
-        rol:{type:String, default:'Cliente'}
+        rol:{type:String, requided:true, default:'Admin'}
     }, 
     {
         timestamps:true //genera columnas de creado y actualizado
@@ -23,7 +23,7 @@ const clienteSchema = mongoose.Schema(
  * .pre, es un middleware que se ejecuta antes de almacenar,
  *  
  */
-clienteSchema.pre('save', async function(next) {
+AdminSchema.pre('save', async function(next) {
     // revisa que el password no haya sido cambiado por cambios en el perfil
     /* if(!this.isModified('pass')){
         next(); // pasa al siguiente middleware
@@ -37,7 +37,7 @@ clienteSchema.pre('save', async function(next) {
  *  Esto añade un nuevo metodo al schema, que podra
  *  ser utilizado por la instancia 
  */
-clienteSchema.methods.comprobarPass = async function(passForm){
+AdminSchema.methods.comprobarPass = async function(passForm){
     return await bcrypt.compareSync(passForm,this.pass);
 };
 
@@ -45,7 +45,7 @@ clienteSchema.methods.comprobarPass = async function(passForm){
 
 
 // convertir el esquema a modelo para poderlo trabajar
-const Cliente = mongoose.model("Cliente",clienteSchema);
+const Admin = mongoose.model("Admin",AdminSchema);
 
 //hacerlo disponible en la aplicación
-export default Cliente;
+export default Admin;

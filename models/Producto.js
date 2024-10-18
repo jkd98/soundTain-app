@@ -3,12 +3,13 @@ import mongoose from "mongoose";
 const productoSchema = mongoose.Schema(
     {
         nombre: {type:String, required:true},
-        descripcion: {type:String, required:true},
+        descripcion: {type:String, required:false},
         precio:{type:Number, required:true},
-        imagen:{type:String, required:true}
+        imagen:{type:String, required:false}
     },
     {
-        timestamps:true //genera columnas de creado y actualizado
+        timestamps:true,
+        required:false //genera columnas de creado y actualizado
     }
 );
 
