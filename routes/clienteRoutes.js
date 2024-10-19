@@ -9,6 +9,7 @@ import {
 
 const router = express.Router();
 
+// http://localhost:PUERTO/??????/rutas-de-abajo
 
 router.get('/clientes', listarClientes);
 router.get('/clientes/:idC', obtenerCliente);

@@ -19,7 +19,7 @@ const checkAuth = async (req, res, next) => {
             return res.json({ msg: "No se ha autenticado" });
         }else {
             req.usuario = cliente;
-            console.log(cliente);
+            //console.log(cliente);
             return next(); // avanza al sig middleware
         }
     } catch (error) {

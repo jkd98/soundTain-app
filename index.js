@@ -52,9 +52,9 @@ const corsOptions = {
     res.send('Hola mundo') //send permite mostrar info en la pantalla
     res.json({msg:'ok'}) //  respuesta tipo json para acceder a datos
 }) */
-app.use('/auth',authRouter);
+app.use('/auth',authRouter); //aqui viene login y regisro y todo eso
 app.use('/productos',productoRouter);
-app.use('/coment',comentarioRouter)
+app.use('/coment',comentarioRouter);
 
 // puerto
 const PORT = process.env.PORT || 4000; 

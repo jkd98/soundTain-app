@@ -11,6 +11,8 @@ import {
 
 const router = express.Router();
 
+// http://localhost:PUERTO/auth/rutas-de-abajo
+
 router.post('/login', login);
 router.post('/registro', registro );
 router.get('/confirmar/:tkn', confirmar);
