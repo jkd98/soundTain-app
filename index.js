@@ -12,6 +12,7 @@ import productoRouter from "./routes/productoRoutes.js";
 import authRouter from "./routes/authRoutes.js";
 import comentarioRouter from "./routes/comentarioRoutes.js";
 import carritoRouter from "./routes/carritoRoutes.js";
+import ordenCliente from "./routes/ordenCliente.js";
 
 
 // concentra la funcionalidad de express
@@ -57,6 +58,7 @@ app.use('/auth',authRouter); //aqui viene login y regisro y todo eso
 app.use('/productos',productoRouter);
 app.use('/coment',comentarioRouter);
 app.use('/carrito', carritoRouter);
+app.use('/ordenCliente', ordenCliente)
 
 // puerto
 const PORT = process.env.PORT || 4000; 
