@@ -7,6 +7,7 @@ const clienteSchema = mongoose.Schema(
         nombre: { type: String, required: true, trim: true },
         apellido: { type: String, required: true, trim: true },
         pass: { type: String, required: true, trim: true },
+        direccion: { type: String, required: true, trim: true }, // Se agrega la direccion del cliente
         email: { type: String, required: true, trim: true, unique: true, lowercase: true },
         phone: { type: String, trim: true },
         token: { type: String },
