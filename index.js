@@ -12,7 +12,11 @@ import productoRouter from "./routes/productoRoutes.js";
 import authRouter from "./routes/authRoutes.js";
 import comentarioRouter from "./routes/comentarioRoutes.js";
 import carritoRouter from "./routes/carritoRoutes.js";
+<<<<<<< HEAD
 import ordenCliente from "./routes/ordenRoutes.js";
+=======
+import ordenCliente from "./routes/ordenCliente.js";
+>>>>>>> ac97fa2ab7b1dd738986d78e8d4d66d824f28a74
 
 
 // concentra la funcionalidad de express
