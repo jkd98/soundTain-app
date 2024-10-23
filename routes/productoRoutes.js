@@ -9,7 +9,8 @@ import {
     obtenerProducto, 
     editarProducto, 
     eliminarProducto, 
-    subirImagen 
+    subirImagen,
+    obtenerProductosNvs 
 } from "../controllers/productoController.js";
 
 const router = express.Router();
@@ -24,6 +25,9 @@ router.post('/add-img/:id', checkAuth, checkRol , upload.single('imagen'), subir
 
 // Ruta para listar todos los productos con paginación
 router.get('/listar', listarProductos);
+
+// Ruta para listar los primeros 10 productos
+router.get('/nuevos',obtenerProductosNvs);
 
 // Ruta para obtener un producto por su ID
 router.get('/:id', obtenerProducto);

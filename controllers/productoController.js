@@ -53,6 +53,18 @@ const listarProductos = async (req, res, next) => {
     }
 };
 
+// Función para obtener los primeros 10 productos
+const obtenerProductosNvs = async (req, res) => {
+    try {
+        // Obtener los primeros 10 productos
+        const productos = await Producto.find().limit(10);
+
+        res.json({msg:'ok',productos});  // Devolver los productos como respuesta
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Error al obtener los productos", productos:[] });
+    }
+}
 
 // Función para listar un solo producto
 const obtenerProducto = async (req, res, next) => {
@@ -70,11 +82,11 @@ const obtenerProducto = async (req, res, next) => {
          const imagenUrl = obtenerUrlImagen(req, producto.imagen);
 
         // Enviar el producto encontrado
-        res.json({producto,imag:imagenUrl});
+        res.json({msg:'ok',producto,imag:imagenUrl});
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({ msg: 'Error al obtener el producto' });
+        res.status(500).json({ msg: 'Error al obtener el producto',producto:{} });
         next();
     }
 };
@@ -165,5 +177,6 @@ export {
     listarProductos,
     editarProducto,
     eliminarProducto,
-    obtenerProducto
+    obtenerProducto,
+    obtenerProductosNvs
 }

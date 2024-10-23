@@ -7,8 +7,8 @@ const productoSchema = mongoose.Schema(
         precio:{type:Number, required:true}, 
         cantidad:{type:Number, required:true}, // Se agrega la cantidad de productos disponibles
         categoria:{type:String, required:true}, // Se agrega a que categoria pertenece
-        Estante: {type:String, required:true}, // Se agrega el estante donde se ubica
-        SeccionEstante: {type:String, required:true}, // Se agrega la seccion del estante a la que pertence
+        estante: {type:String, required:false}, // Se agrega el estante donde se ubica
+        seccionEstante: {type:String, required:false}, // Se agrega la seccion del estante a la que pertence
         imagen:{type:String, required:false}
     },
     {
