@@ -25,7 +25,7 @@ export const emailResgistro = async(datos) => {
         `
         <p>Hola, ${nombre} confirma tu cuenta en SoundTain-Instruments</p>
         <p>Tu cuenta ya esta casi lista, solo debes comprobarla en el siguiente enlace: </p>
-        <a href="${process.env.BACK_URL}:${process.env.PORT}/auth/confirmar/${token}" >Comprobar Cuenta</a>
+        <a href="${process.env.FRONTEND_URL}:${process.env.PORTF}/auth/confirmar/${token}" >Comprobar Cuenta</a>
         
         <p>Si tu no creaste esta cuenta, puedes ignorar este mensaje</p>
         `
