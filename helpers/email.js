@@ -57,8 +57,8 @@ export const emailOlvidePassw = async(datos) => {
       `
       <p>Hola, ${nombre} has solicitado reestablecer tu contraseña</p>
       <p>Sigue el siguiente enlace para generar una nueva contraseña: </p>
-      <a href="${process.env.BACK_URL}:${process.env.PORT}/auth/olvide-passwd/${token}" >Reestablecer Contraseña</a>
-      <p>Si tu no solicitaste este email, puedes ignorar este mensaje</p>
+      <a href="${process.env.FRONTEND_URL}:${process.env.PORTF}/auth/nueva-pass/${token}" >Reestablecer Contraseña</a>
+      <p>Si tu no solicitaste el cambio de contraseña, puedes ignorar este mensaje</p>
       `
     });
 
