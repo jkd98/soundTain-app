@@ -33,7 +33,7 @@ conectarDB();
 
 // Configurar CORS
     // Dominios Permitidos
-const whiteList = [process.env.FRONTEND_URL];
+const whiteList = [process.env.FRONTEND_URLC];
 const corsOptions = {
     origin:function(origin,callback){
         // Comprobar en la lista blanca
