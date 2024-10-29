@@ -6,12 +6,19 @@ import { emailOlvidePassw, emailResgistro } from "../helpers/email.js";
 import generarJWT from "../helpers/generarJWT.js";
 
 
+class Respuesta {
+    status = '';
+    msg = '';
+    data = null;
+}
+
 //Funcion para iniciar sesión
 const login = async (req, res, next) => {
-    const {email,pass} = req.body;
-    
+    let respuesta = new Respuesta();
+    const { email, pass } = req.body;
+
     try {
-        await check('email').isEmail().withMessage('Email Obligatorio').run(req);
+        await check('email').notEmpty().withMessage('Email Obligatorio').run(req);
         await check('pass').notEmpty().withMessage('Password Obligatorio').run(req);
 
         let resultdado = validationResult(req);
@@ -19,41 +26,64 @@ const login = async (req, res, next) => {
         // Verificar que no haya errores
         if (!resultdado.isEmpty()) {
             // Mostrar Errores
-            return res.json(resultdado.array());
+            respuesta.status = 'error';
+            respuesta.msg = 'Se encontraron mensajes de error';
+            respuesta.data = resultdado.array();
+            return res.json(respuesta);
         }
 
         // Comprobar si existe
-        const cliente = await Cliente.findOne({email});
-        
-        if(!cliente){
-            return res.json({msg:"Ususario no encontrado"});
+        const cliente = await Cliente.findOne({ email });
+
+        if (!cliente) {
+            respuesta.status = 'error';
+            respuesta.msg = 'Ususario no encontrado';
+            respuesta.data = null;
+            return res.json(respuesta);
         }
+
+        //console.log(cliente);
 
         // Comprobar si esta confirmada la cuenta
-        if(!cliente.confirmado) {
-            return res.json({msg:"Tu cuenta no ha sido confirmada"});
+        if (!cliente.confirmado) {
+            respuesta.status = 'error';
+            respuesta.msg = 'Tu cuenta no ha sido confirmada';
+            respuesta.data = null;
+            return res.json(respuesta);
         }
-
+        //console.log(pass);
         //revisar password
-        if(!await cliente.comprobarPass(pass)){
-            return res.json({msg:"Contraseña incorrecta"});
+        const cl = await cliente.comprobarPass(pass);
+        //console.log(cl);
+
+        if (!cl) {
+            respuesta.status = 'error';
+            respuesta.msg = 'Contraseña incorrecta';
+            respuesta.data = null;
+            return res.json(respuesta);
         }
 
+        //Si no hay errores
+        respuesta.status = 'succes';
+        respuesta.msg = 'Credenciales correctas, iniciando sesión...';
+        respuesta.data = null;
         // Crear token y almacenarlo en cookie
         const jwtkn = generarJWT(cliente._id);
-        res.cookie('_tkn',jwtkn,{httpOnly:true});
-        res.json({msg:"ok",jwtkn});
+        res.cookie('_tkn', jwtkn, { httpOnly: true });
+        res.json(respuesta);
         //return res.cookie('_jwtoken',jwtkn,{httpOnly:true});
     } catch (error) {
         // Atrapar error
-        console.log(error);
-        res.json({msg:"no-ok"});
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error en el servidor';
+        respuesta.data = null;
+        return res.json(respuesta);
     }
 };
 
 //Funcion para registrar nuevos clientes
 const registro = async (req, res, next) => {
+    let respuesta = new Respuesta();
     //parsear datos
     const cliente = new Cliente(req.body);
     try {
@@ -68,14 +98,20 @@ const registro = async (req, res, next) => {
         // Verificar que no haya errores
         if (!resultdado.isEmpty()) {
             // Mostrar Errores
-            return res.json(resultdado.array());
+            respuesta.status = 'error';
+            respuesta.msg = 'Se encontraron mensajes de error';
+            respuesta.data = resultdado.array();
+            return res.json(respuesta);
         }
 
         // Evitar usuarios duplicados
         const exists = await Cliente.findOne({ 'email': req.body.email })
         //console.log(exists);
         if (exists) {
-            return res.json({ msg: "El email ya se encuentra registrado" })
+            respuesta.status = 'error';
+            respuesta.msg = 'El email ya se encuentra registrado';
+            respuesta.data = null;
+            return res.json(respuesta);
         }
 
         // Almacenar registro si no hay erroe¿res
@@ -89,39 +125,49 @@ const registro = async (req, res, next) => {
         });
 
         await cliente.save();
+        // no hay err
+        respuesta.status = 'succes';
+        respuesta.msg = 'Usuario Creado Correctamente, Revisa tu Email para Confirmar tu cuenta';
+        respuesta.data = null;
+        return res.json(respuesta);
 
-        return res.json({ msg: "Usuario Creado Correctamente, Revisa tu Email para Confirmar tu cuenta" });
     } catch (error) {
-        // Atrapar error
-        console.log(error);
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al guardar en el servidor';
+        respuesta.data = null;
+        return res.json(respuesta);
     }
 
 };
 
 // Función para confirmar una cuenta
 const confirmar = async (req, res, next) => {
+    let respuesta = new Respuesta();
     const { tkn } = req.params;
-
     try {
-        const clienteConfirmar = await Cliente.findOne({token:tkn});
+        const clienteConfirmar = await Cliente.findOne({ token: tkn });
         clienteConfirmar.confirmado = true;
         clienteConfirmar.token = "";
         await clienteConfirmar.save();
         //console.log(clienteConfirmar);
-        res.json({msg:"Usuario Confirmado Correctamente"});
+        respuesta.status = 'succes';
+        respuesta.msg = 'Usuario Confirmado Correctamente';
+        respuesta.data = null;
+        return res.json(respuesta);
 
     } catch (error) {
-        const errors = new Error("Token no válido");
-        return res.status(403).json({msg:errors.message});
-        //console.log(errors.message);
+        respuesta.status = 'error';
+        respuesta.msg = 'Token no válido';
+        respuesta.data = null;
+        return res.json(respuesta);
     };
 }
 
 //Funcion para recuperar contraseña
 const resetPasswd = async (req, res, next) => {
     const { email } = req.body;
-    
+    let respuesta = new Respuesta();
+
     try {
         //validación email
         await check('email').isEmail().withMessage('Esto no parece un email').run(req);
@@ -130,15 +176,21 @@ const resetPasswd = async (req, res, next) => {
 
         // Verificar que no haya errores
         if (!resultdado.isEmpty()) {
-            //Errores
-            return res.json(resultdado.array());
+            // Mostrar Errores
+            respuesta.status = 'error';
+            respuesta.msg = 'Se encontraron mensajes de error';
+            respuesta.data = resultdado.array();
+            return res.json(respuesta);
         }
 
         // Buscar usuario
         const existsClient = await Cliente.findOne({ 'email': email })
-        
+
         if (!existsClient) {
-            return res.json({ msg: "No existe el usuario" })
+            respuesta.status = 'error';
+            respuesta.msg = 'No existe el usuario';
+            respuesta.data = null;
+            return res.json(respuesta);
         }
 
 
@@ -154,11 +206,18 @@ const resetPasswd = async (req, res, next) => {
 
         await existsClient.save();
 
-        return res.json({ msg: "Hemos enviado un email con las instrucciones" });
+        //sin errores
+        respuesta.status = 'succes';
+        respuesta.msg = 'Hemos enviado un email con las instrucciones';
+        respuesta.data = null;
+        return res.json(respuesta);
+
     } catch (error) {
         // Atrapar error
-        console.log(error);
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error en el servidor';
+        respuesta.data = null;
+        return res.json(respuesta);
     }
 }
 
@@ -167,14 +226,23 @@ const resetPasswd = async (req, res, next) => {
  * Funcion para validar el token de cambio 
  * de contraseña.
  */
-const comprobarToken = async (req,res) => {
-    const {tkn} = req.params;
-    const existCliente = await Cliente.findOne({token:tkn});
-    if(existCliente){
-        res.json({msg:"Usuario exitente && token válido",valid:true});
+const comprobarToken = async (req, res) => {
+    let respuesta = new Respuesta();
+
+    const { tkn } = req.params;
+    const existCliente = await Cliente.findOne({ token: tkn });
+    if (existCliente) {
+        respuesta.status = 'succes';
+        respuesta.msg = 'Usuario exitente && token válido';
+        respuesta.data = null;
+        return res.json(respuesta);
+        //res.json({ msg: "Usuario exitente && token válido", valid: true });
     } else {
-        const error = new Error("Token no válido");
-        res.status(404).json({msg:error.message,valid:false});
+        respuesta.status = 'error';
+        respuesta.msg = 'Token no válido';
+        respuesta.data = null;
+        return res.json(respuesta);
+        //res.status(404).json({ msg: error.message, valid: false });
     };
 }
 
@@ -182,7 +250,9 @@ const comprobarToken = async (req,res) => {
  * Funcion para cambiar el password de 
  * un usuario
  */
-const cambiarPass = async (req,res,next) => {
+const cambiarPass = async (req, res, next) => {
+    let respuesta = new Respuesta();
+
     const { tkn } = req.params;
     const { pass } = req.body;
     try {
@@ -194,24 +264,31 @@ const cambiarPass = async (req,res,next) => {
         // Verificar que no haya errores
         if (!resultdado.isEmpty()) {
             // imprimir errores
-            return res.json(resultdado.array());
+            respuesta.status = 'error';
+            respuesta.msg = 'Se encontraron mensajes de error';
+            respuesta.data = resultdado.array();
+            return res.json(respuesta);
         }
 
         // Ver que usuario va a realizar el cambio
-        const existsClient = await Cliente.findOne({token:tkn});
+        const existsClient = await Cliente.findOne({ token: tkn });
         //console.log(exists);
 
         //nuevo pass
         existsClient.pass = pass;
         existsClient.token = '';
         await existsClient.save();
-
-        return res.json({ msg: "Nueva contraseña guardada exitosamente" });
+        //sin err
+        respuesta.status = 'succes';
+        respuesta.msg = 'Nueva contraseña guardada exitosamente';
+        respuesta.data = null;
+        return res.json(respuesta);
     } catch (error) {
         // Atrapar error
-        console.log(error);
-        res.json({msg:"Token no válido"});
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Token no válido';
+        respuesta.data = null;
+        return res.json(respuesta);
     }
 }
 

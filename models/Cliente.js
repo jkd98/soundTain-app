@@ -25,21 +25,26 @@ const clienteSchema = mongoose.Schema(
  *  
  */
 clienteSchema.pre('save', async function(next) {
-    // revisa que el password no haya sido cambiado por cambios en el perfil
-    /* if(!this.isModified('pass')){
+    // Evita que se ejecute el hash, cada vez que se actualiza el documento. 
+    // Solo se ejecuta si el campo 'pass' ha sido modificado
+    if(!this.isModified('pass')){
         next(); // pasa al siguiente middleware
-    }; */
+    };
+    //console.log(this.pass);
     const salt = await bcrypt.genSalt(10); // genara salto de 10 rondas
     // hash
     this.pass = await bcrypt.hash(this.pass,salt); // this.pass hace refencia al objeto que se almacenara
+    next();
 });
 
 /**
  *  Esto añade un nuevo metodo al schema, que podra
  *  ser utilizado por la instancia 
  */
-clienteSchema.methods.comprobarPass = async function(passForm){
-    return await bcrypt.compareSync(passForm,this.pass);
+clienteSchema.methods.comprobarPass = function(passForm){
+    const data = bcrypt.compareSync(passForm,this.pass);
+    //console.log(data);
+    return data;
 };
 
 
