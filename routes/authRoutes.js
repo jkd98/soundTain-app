@@ -6,7 +6,8 @@ import {
     confirmar,
     resetPasswd,
     comprobarToken,
-    cambiarPass
+    cambiarPass,
+    logOut
 } from "../controllers/authController.js"
 
 const router = express.Router();
@@ -20,5 +21,7 @@ router.get('/confirmar/:tkn', confirmar);
 router.post('/olvide-passwd', resetPasswd);
 router.get('/olvide-passwd/:tkn', comprobarToken);
 router.post('/olvide-passwd/:tkn', cambiarPass);
+
+router.get('/logout',logOut);
 
 export default router;

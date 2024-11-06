@@ -1,7 +1,15 @@
 import OrdenProducto from "../models/OrdenCliente.js"; // Usar el nombre correcto del archivo
 
+class Respuesta {
+    status = '';
+    msg = '';
+    data = null;
+}
+
 // Controlador para listar todos los productos comprados por un cliente
 const ordenCliente = async (req, res) => {
+    let respuesta = new Respuesta();
+
     try {
         // Obtener el ID del cliente desde el token de autenticación
         const clienteId = req.user._id;
@@ -11,11 +19,13 @@ const ordenCliente = async (req, res) => {
 
         // Si no hay órdenes, devolver un mensaje
         if (ordenes.length === 0) {
-            return res.status(404).json({ mensaje: "No se encontraron productos comprados por este cliente." });
+            respuesta.status = 'error';
+            respuesta.msg = "No se encontraron productos comprados por este cliente.";
+            return res.status(404).json(respuesta);
         }
 
         // Extraer los productos de las órdenes
-        const productosComprados = ordenes.flatMap(orden => 
+        const productosComprados = ordenes.flatMap(orden =>
             orden.productos.map(producto => ({
                 nombre: producto.productoId.nombre,
                 cantidad: producto.cantidad,
@@ -24,9 +34,15 @@ const ordenCliente = async (req, res) => {
         );
 
         // Devolver la lista de productos comprados
-        res.json(productosComprados);
+        respuesta.status = 'success';
+        respuesta.msg = "Productos comprados encontrados.";
+        respuesta.data = productosComprados;
+        res.json(respuesta);
     } catch (error) {
-        res.status(500).json({ mensaje: "Hubo un error al obtener los productos.", error: error.message });
+        respuesta.status = 'error';
+        respuesta.msg = "Hubo un error al obtener los productos.";
+        respuesta.data = { error: error.message };
+        res.status(500).json(respuesta);
     }
 };
 

@@ -64,12 +64,12 @@ const login = async (req, res, next) => {
         }
 
         //Si no hay errores
+        const jwtkn = generarJWT(cliente._id);
         respuesta.status = 'succes';
         respuesta.msg = 'Credenciales correctas, iniciando sesión...';
-        respuesta.data = null;
+        respuesta.data = {rol:cliente.rol,tkn:jwtkn};
         // Crear token y almacenarlo en cookie
-        const jwtkn = generarJWT(cliente._id);
-        res.cookie('_tkn', jwtkn, { httpOnly: true });
+        //localStorage.setItem(JSON.stringify({rol:cliente.rol}));
         res.json(respuesta);
         //return res.cookie('_jwtoken',jwtkn,{httpOnly:true});
     } catch (error) {
@@ -170,7 +170,7 @@ const resetPasswd = async (req, res, next) => {
 
     try {
         //validación email
-        await check('email').isEmail().withMessage('Esto no parece un email').run(req);
+        await check('email').notEmpty().withMessage('Correo Obligatorio').run(req);
 
         let resultdado = validationResult(req);
 
@@ -292,11 +292,16 @@ const cambiarPass = async (req, res, next) => {
     }
 }
 
+const logOut = async (req, res, next) => {
+    req.cookies = null;
+}
+
 export {
     login,
     registro,
     confirmar,
     resetPasswd,
     comprobarToken,
-    cambiarPass
+    cambiarPass,
+    logOut
 }

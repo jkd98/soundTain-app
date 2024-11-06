@@ -10,7 +10,8 @@ import {
     editarProducto, 
     eliminarProducto, 
     subirImagen,
-    obtenerProductosNvs 
+    obtenerProductosNvs,
+    obtenerProductosFiltrados
 } from "../controllers/productoController.js";
 
 const router = express.Router();
@@ -37,5 +38,8 @@ router.put('/edit/:id', checkAuth, checkRol, editarProducto);
 
 // Ruta para eliminar un producto por su ID
 router.delete('/delete/:id', checkAuth, checkRol, eliminarProducto);
+
+// Ruta para filtrar productos
+router.get('/',obtenerProductosFiltrados);
 
 export default router;

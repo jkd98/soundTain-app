@@ -1,175 +1,247 @@
-import { unlink } from "node:fs/promises"
-
+import { unlink } from "node:fs/promises";
 import Producto from "../models/Producto.js";
 
-//Funcion para agregar nuevo producto
+class Respuesta {
+    status = '';
+    msg = '';
+    data = null;
+}
+
+// Función para agregar nuevo producto
 const aggProducto = async (req, res, next) => {
-    //parsear datos
+    let respuesta = new Respuesta();
     const producto = new Producto(req.body);
 
     try {
-        // Almacenar registro
         await producto.save();
-        res.json({ msg: "Se agrego un producto nuevo" })
+        respuesta.status = 'success';
+        respuesta.msg = 'Se agregó un producto nuevo';
+        respuesta.data = producto;
+        res.json(respuesta);
     } catch (error) {
-        // Atrapar error
         console.log(error);
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al agregar el producto';
+        res.json(respuesta);
     }
-}
+};
 
 // Función para listar productos con paginación
 const listarProductos = async (req, res, next) => {
+    let respuesta = new Respuesta();
     const { pagina: paginaActual = 1 } = req.query;
 
     try {
         const limit = 10;
         const offset = (paginaActual - 1) * limit;
-
-        // Obtener productos
-        const productos = await Producto.find()
-            .limit(limit)
-            .skip(offset);
-
-        // Contar el total de productos
+        const productos = await Producto.find().limit(limit).skip(offset);
         const totalProductos = await Producto.countDocuments();
-
-        // Mapear los productos y añadir la URL de la imagen
+        
         const productosConImagen = productos.map(producto => ({
-            ...producto._doc,               // Datos del producto
-            imagenUrl: obtenerUrlImagen(req, producto.imagen)  // URL de la imagen
+            ...producto._doc,
+            imagenUrl: obtenerUrlImagen(req, producto.imagen)
         }));
 
-        res.json({
+        respuesta.status = 'success';
+        respuesta.msg = 'Productos listados correctamente';
+        respuesta.data = {
             productos: productosConImagen,
             paginaActual: Number(paginaActual),
             totalPaginas: Math.ceil(totalProductos / limit),
-            totalProductos,
-        });
+            totalProductos
+        };
+        res.json(respuesta);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ msg: 'Error al listar productos' });
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al listar productos';
+        res.json(respuesta);
     }
 };
 
 // Función para obtener los primeros 10 productos
 const obtenerProductosNvs = async (req, res) => {
+    let respuesta = new Respuesta();
     try {
-        // Obtener los primeros 10 productos
         const productos = await Producto.find().limit(10);
-
-        res.json({msg:'ok',productos});  // Devolver los productos como respuesta
+        respuesta.status = 'success';
+        respuesta.msg = 'Productos obtenidos correctamente';
+        respuesta.data = productos;
+        res.json(respuesta);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ msg: "Error al obtener los productos", productos:[] });
-    }
-}
-
-// Función para listar un solo producto
-const obtenerProducto = async (req, res, next) => {
-    const { id } = req.params;
-    
-    try {        
-        // Buscar el producto por su ID
-        const producto = await Producto.findById(id);
-        
-        if (!producto) {
-            return res.status(404).json({ msg: 'Producto no encontrado' });
-        }
-
-         // Agregar la URL de la imagen al producto
-         const imagenUrl = obtenerUrlImagen(req, producto.imagen);
-
-        // Enviar el producto encontrado
-        res.json({msg:'ok',producto,imag:imagenUrl});
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ msg: 'Error al obtener el producto',producto:{} });
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al obtener los productos';
+        respuesta.data = [];
+        res.json(respuesta);
     }
 };
 
-
-//Funcion para editar producto
-const editarProducto = async (req, res, next) => {
+// Función para listar un solo producto
+const obtenerProducto = async (req, res, next) => {
+    let respuesta = new Respuesta();
     const { id } = req.params;
-    
+
     try {
         const producto = await Producto.findById(id);
-
         if (!producto) {
-            return res.status(404).json({ msg: 'Producto no encontrado' });
+            respuesta.status = 'error';
+            respuesta.msg = 'Producto no encontrado';
+            return res.json(respuesta);
         }
 
-        // Actualizar campos del producto con los datos del request body
+        const imagenUrl = obtenerUrlImagen(req, producto.imagen);
+        respuesta.status = 'success';
+        respuesta.msg = 'Producto obtenido correctamente';
+        respuesta.data = { producto, imagenUrl };
+        res.json(respuesta);
+    } catch (error) {
+        console.log(error);
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al obtener el producto';
+        respuesta.data = {};
+        res.json(respuesta);
+    }
+};
+
+// Función para editar producto
+const editarProducto = async (req, res, next) => {
+    let respuesta = new Respuesta();
+    const { id } = req.params;
+
+    try {
+        const producto = await Producto.findById(id);
+        if (!producto) {
+            respuesta.status = 'error';
+            respuesta.msg = 'Producto no encontrado';
+            return res.json(respuesta);
+        }
+
         producto.nombre = req.body.nombre || producto.nombre;
         producto.descripcion = req.body.descripcion || producto.descripcion;
         producto.precio = req.body.precio || producto.precio;
 
-        // Guardar los cambios
         const productoActualizado = await producto.save();
-        res.json({ msg: 'Producto actualizado correctamente', producto: productoActualizado });
+        respuesta.status = 'success';
+        respuesta.msg = 'Producto actualizado correctamente';
+        respuesta.data = productoActualizado;
+        res.json(respuesta);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ msg: 'Error al actualizar producto' });
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al actualizar producto';
+        res.json(respuesta);
     }
 };
 
-
-//Función para eliminar un producto
+// Función para eliminar un producto
 const eliminarProducto = async (req, res, next) => {
+    let respuesta = new Respuesta();
     const { id } = req.params;
-    const producto = await Producto.findById(id);
-    if (!producto) {
-        return res.status(404).json({ msg: 'Producto no encontrado' });
-    }
-    
-    // eliminar imagen 
-    await unlink(`public/uploads/${producto.imagen}`);
-    
+
     try {
-        // Eliminar el producto
+        const producto = await Producto.findById(id);
+        if (!producto) {
+            respuesta.status = 'error';
+            respuesta.msg = 'Producto no encontrado';
+            return res.json(respuesta);
+        }
+
+        await unlink(`public/uploads/${producto.imagen}`);
         await producto.deleteOne();
-        res.json({ msg: 'Producto eliminado correctamente' });
+
+        respuesta.status = 'success';
+        respuesta.msg = 'Producto eliminado correctamente';
+        res.json(respuesta);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ msg: 'Error al eliminar producto' });
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al eliminar producto';
+        res.json(respuesta);
     }
 };
 
-
-//Funcion para subir imagen
+// Función para subir imagen
 const subirImagen = async (req, res, next) => {
+    let respuesta = new Respuesta();
     const { id } = req.params;
 
-    const extProducto = await Producto.findById(id);
-    if (!extProducto) return next();
-
     try {
-        console.log(req.file);
+        const extProducto = await Producto.findById(id);
+        if (!extProducto) {
+            respuesta.status = 'error';
+            respuesta.msg = 'Producto no encontrado';
+            return res.json(respuesta);
+        }
 
         extProducto.imagen = req.file.filename;
-
         await extProducto.save();
 
-        next();
-
+        respuesta.status = 'success';
+        respuesta.msg = 'Imagen subida correctamente';
+        respuesta.data = extProducto;
+        res.json(respuesta);
     } catch (error) {
         console.log(error);
-        res.json({ msg: "No se econtro el producto" });
-        next();
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al subir imagen';
+        res.json(respuesta);
     }
 };
 
-
 const obtenerUrlImagen = (req, imagenNombre) => {
-    if (!imagenNombre) return null; // Si no hay imagen, retorna null
+    if (!imagenNombre) return null;
     return `${req.protocol}://${req.get('host')}/public/uploads/${imagenNombre}`;
 };
+
+const obtenerProductosFiltrados = async (req, res) => {
+    let respuesta = new Respuesta();
+
+    ///productos?categoria
+    try {
+      // Desestructuramos los filtros desde el query de la URL
+      const { categoria, minPrecio, maxPrecio, nombre } = req.query;
+      // Construimos un objeto de filtros dinámico
+      let filtros = {};
+  
+      // Agregamos la categoría si está presente
+      if (categoria) {
+        filtros.categoria = categoria;
+      }
+  
+      // Agregamos el filtro de rango de precios si ambos límites están presentes
+      if (minPrecio && maxPrecio) {
+        filtros.precio = { $gte: parseFloat(minPrecio), $lte: parseFloat(maxPrecio) };
+      } else if (minPrecio) {
+        filtros.precio = { $gte: parseFloat(minPrecio) };
+      } else if (maxPrecio) {
+        filtros.precio = { $lte: parseFloat(maxPrecio) };
+      }
+  
+      // Agregamos el filtro de nombre usando expresión regular para búsqueda parcial
+      if (nombre) {
+        filtros.nombre = { $regex: nombre, $options: 'i' }; // 'i' para que sea insensible a mayúsculas
+      }
+      console.log(filtros);
+      
+      // Si no se aplica ningún filtro, devolvemos todos los productos
+      const productos = Object.keys(filtros).length === 0
+        ? await Producto.find()
+        : await Producto.find(filtros);
+        
+        respuesta.status = 'success';
+        respuesta.msg = 'Productos filtrados';
+        respuesta.data = productos;        
+        
+        res.json(respuesta);
+    } catch (error) {
+        respuesta.status = 'success';
+        respuesta.msg = 'Hubo un error al obtener los productos';
+        respuesta.data = [];        
+        
+        res.json(respuesta);
+    }
+}
 
 export {
     aggProducto,
@@ -178,5 +250,6 @@ export {
     editarProducto,
     eliminarProducto,
     obtenerProducto,
-    obtenerProductosNvs
-}
+    obtenerProductosNvs,
+    obtenerProductosFiltrados
+};
