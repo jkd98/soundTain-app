@@ -20,7 +20,7 @@ const carritoSchema = new mongoose.Schema({
             },
             precio: {
                 type: Number,
-                required: true
+                required: false
             }
         }
     ],

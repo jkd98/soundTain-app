@@ -1,28 +1,27 @@
-import Carrito from "../models/Carrito.js";
-import Producto from "../models/Producto.js";
+import Carrito from '../models/Carrito.js'; // Asegúrate de importar correctamente el modelo Carrito
+import Producto from '../models/Producto.js'; // Asegúrate de importar el modelo Producto
+import  OrdenProducto  from '../models/OrdenCliente.js';
+import { emailDetalleVenta } from '../helpers/email.js';
+
 
 class Respuesta {
     status = '';
     msg = '';
     data = null;
 }
-
-// Función para agregar un producto al carrito
-const agregarAlCarrito = async (req, res) => {
+// Agregar un producto al carrito
+export const agregarAlCarrito = async (req, res) => {
     const { productoId, cantidad } = req.body;
     const { _id: usuarioId } = req.usuario;
-    let respuesta = new Respuesta();
-
     try {
         const producto = await Producto.findById(productoId);
         if (!producto) {
-            respuesta.status = 'error';
-            respuesta.msg = 'Producto no encontrado';
-            return res.status(404).json(respuesta);
+            return res.status(404).json({ status: 'error', msg: 'Producto no encontrado' });
         }
 
         let carrito = await Carrito.findOne({ usuario: usuarioId });
         if (!carrito) {
+            // Crear nuevo carrito si no existe
             carrito = new Carrito({
                 usuario: usuarioId,
                 productos: [{ producto: productoId, cantidad, precio: producto.precio }],
@@ -32,41 +31,109 @@ const agregarAlCarrito = async (req, res) => {
             const productoEnCarrito = carrito.productos.find(p => p.producto.equals(productoId));
             if (productoEnCarrito) {
                 productoEnCarrito.cantidad += cantidad;
-                carrito.total += producto.precio * cantidad;
             } else {
                 carrito.productos.push({ producto: productoId, cantidad, precio: producto.precio });
-                carrito.total += producto.precio * cantidad;
             }
+            // Recalcular el total
+            carrito.total = carrito.productos.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
         }
 
         await carrito.save();
-        respuesta.status = 'success';
-        respuesta.msg = 'Producto agregado al carrito';
-        respuesta.data = carrito;
-        res.json(respuesta);
+        res.json({ status: 'success', msg: 'Producto agregado al carrito', data: carrito });
     } catch (error) {
-        console.log(error);
-        respuesta.status = 'error';
-        respuesta.msg = 'Error al agregar producto al carrito';
-        res.status(500).json(respuesta);
+        res.status(500).json({ status: 'error', msg: 'Error al agregar producto al carrito' });
     }
 };
 
-// Función para obtener el carrito del usuario
-const obtenerCarrito = async (req, res) => {
+// Eliminar un producto del carrito
+export const eliminarDelCarrito = async (req, res) => {
+    const { productoId } = req.body;
     const { _id: usuarioId } = req.usuario;
-    let respuesta = new Respuesta();
-
     try {
-        const carrito = await Carrito.findOne({ usuario: usuarioId }).populate("productos.producto", "nombre precio");
+        const carrito = await Carrito.findOne({ usuario: usuarioId });
         if (!carrito) {
-            respuesta.status = 'success';
-            respuesta.msg = 'Carrito vacío';
-            return res.json(respuesta);
+            return res.status(404).json({ status: 'error', msg: 'Carrito no encontrado' });
         }
 
+        carrito.productos = carrito.productos.filter(p => !p.producto.equals(productoId));
+        carrito.total = carrito.productos.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+
+        await carrito.save();
+        res.json({ status: 'success', msg: 'Producto eliminado del carrito', data: carrito });
+    } catch (error) {
+        res.status(500).json({ status: 'error', msg: 'Error al eliminar producto del carrito' });
+    }
+};
+
+// Incrementar la cantidad de un producto en el carrito
+export const incrementarCantidad = async (req, res) => {
+    const { productoId } = req.body;
+    const { _id: usuarioId } = req.usuario;
+    try {
+        const carrito = await Carrito.findOne({ usuario: usuarioId });
+        if (!carrito) {
+            return res.status(404).json({ status: 'error', msg: 'Carrito no encontrado' });
+        }
+
+        const productoEnCarrito = carrito.productos.find(p => p.producto.equals(productoId));
+        if (productoEnCarrito && productoEnCarrito.cantidad < 5) { // Si no supera la cantidad máxima
+            productoEnCarrito.cantidad += 1;
+            carrito.total = carrito.productos.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+            await carrito.save();
+            res.json({ status: 'success', msg: 'Cantidad incrementada', data: carrito });
+        } else {
+            res.status(400).json({ status: 'error', msg: 'Cantidad máxima alcanzada o producto no encontrado' });
+        }
+    } catch (error) {
+        res.status(500).json({ status: 'error', msg: 'Error al incrementar cantidad' });
+    }
+};
+
+// Disminuir la cantidad de un producto en el carrito
+export const decrementarCantidad = async (req, res) => {
+    const { productoId } = req.body;
+    const { _id: usuarioId } = req.usuario;
+    try {
+        const carrito = await Carrito.findOne({ usuario: usuarioId });
+        if (!carrito) {
+            return res.status(404).json({ status: 'error', msg: 'Carrito no encontrado' });
+        }
+
+        const productoEnCarrito = carrito.productos.find(p => p.producto.equals(productoId));
+        if (productoEnCarrito && productoEnCarrito.cantidad > 1) { // Si no alcanza la cantidad mínima
+            productoEnCarrito.cantidad -= 1;
+            carrito.total = carrito.productos.reduce((sum, item) => sum + item.precio * item.cantidad, 0);
+            await carrito.save();
+            res.json({ status: 'success', msg: 'Cantidad decrementada', data: carrito });
+        } else {
+            res.status(400).json({ status: 'error', msg: 'Cantidad mínima alcanzada o producto no encontrado' });
+        }
+    } catch (error) {
+        res.status(500).json({ status: 'error', msg: 'Error al decrementar cantidad' });
+    }
+};
+
+export const obtenerCarrito = async (req, res) => {
+    let respuesta = new Respuesta();
+    try {
+        const { _id: usuarioId } = req.usuario;
+
+        // Buscar el carrito del usuario y hacer un populate de los productos
+        const carrito = await Carrito.findOne({ usuario: usuarioId })
+            .populate({
+                path: 'productos.producto',
+                select: 'nombre imagen descripcion precio'
+            });
+
+        if (!carrito) {
+            respuesta.status = 'error';
+            respuesta.msg = 'No se encontró el carrito para este usuario';
+            return res.status(404).json(respuesta);
+        }
+
+        // Respuesta de éxito con los datos del carrito
         respuesta.status = 'success';
-        respuesta.msg = 'Carrito obtenido correctamente';
+        respuesta.msg = 'Carrito obtenido exitosamente';
         respuesta.data = carrito;
         res.json(respuesta);
     } catch (error) {
@@ -77,67 +144,68 @@ const obtenerCarrito = async (req, res) => {
     }
 };
 
-// Función para eliminar un producto del carrito
-const eliminarProductoDelCarrito = async (req, res) => {
-    const { productoId } = req.body;
-    const { _id: usuarioId } = req.usuario;
-    let respuesta = new Respuesta();
-
+export const realizarCompra = async (req, res) => {
+    const { orden } = req.body;
+    const { productos, estado, total } = orden;
+   //console.log(req);
+    const { nombre,email,_id } = req.usuario;
+    const respuesta = new Respuesta();
+    
     try {
-        const carrito = await Carrito.findOne({ usuario: usuarioId });
-        if (!carrito) {
-            respuesta.status = 'error';
-            respuesta.msg = 'Carrito no encontrado';
-            return res.status(404).json(respuesta);
-        }
 
-        carrito.productos = carrito.productos.filter(p => !p.producto.equals(productoId));
-        carrito.total = carrito.productos.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
+        const orden = new OrdenProducto({
+            cliente: {
+                clienteId:_id,
+                nombre,
+                email
+            },
+            productos,
+            total,
+            estado // Ajusta el estado inicial según tu lógica de negocio
+        });
 
-        await carrito.save();
+        // Guardar la orden en la base de datos
+        const ordenGuardada = await orden.save();
+        
         respuesta.status = 'success';
-        respuesta.msg = 'Producto eliminado del carrito';
-        respuesta.data = carrito;
+        respuesta.msg = 'Compra realizada exitosamente';
+        respuesta.data = ordenGuardada;
+        
+        emailDetalleVenta(ordenGuardada);
+        
         res.json(respuesta);
     } catch (error) {
         console.log(error);
         respuesta.status = 'error';
-        respuesta.msg = 'Error al eliminar producto del carrito';
+        respuesta.msg = 'Error al realizar la compra';
         res.status(500).json(respuesta);
     }
 };
 
-// Función para vaciar el carrito
-const vaciarCarrito = async (req, res) => {
-    const { _id: usuarioId } = req.usuario;
+// Función para eliminar el carrito
+export const eliminarCarrito = async (req, res) => {
+    const { _id: usuarioId } = req.usuario; // Suponiendo que tienes el usuario autenticado en req.usuario
     let respuesta = new Respuesta();
 
     try {
-        const carrito = await Carrito.findOne({ usuario: usuarioId });
-        if (!carrito) {
+        // Elimina el carrito del usuario en la base de datos
+        const carritoEliminado = await Carrito.findOneAndDelete({ usuario: usuarioId });
+
+        if (!carritoEliminado) {
             respuesta.status = 'error';
-            respuesta.msg = 'Carrito no encontrado';
+            respuesta.msg = 'No se encontró un carrito para el usuario';
             return res.status(404).json(respuesta);
         }
 
-        carrito.productos = [];
-        carrito.total = 0;
-
-        await carrito.save();
+        // Respuesta exitosa si el carrito se eliminó
         respuesta.status = 'success';
-        respuesta.msg = 'Carrito vaciado';
+        respuesta.msg = 'El carrito ha sido eliminado correctamente';
+        respuesta.data = carritoEliminado; // En caso de necesitar detalles del carrito eliminado
         res.json(respuesta);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         respuesta.status = 'error';
-        respuesta.msg = 'Error al vaciar el carrito';
+        respuesta.msg = 'Hubo un error al intentar eliminar el carrito';
         res.status(500).json(respuesta);
     }
-};
-
-export {
-    agregarAlCarrito,
-    obtenerCarrito,
-    eliminarProductoDelCarrito,
-    vaciarCarrito
 };

@@ -3,10 +3,15 @@ import mongoose from "mongoose";
 // Definir el esquema para OrdenProductos
 const ordenProductoSchema = new mongoose.Schema(
     {
-        clienteId: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: 'Cliente', // Se refiere a la colección de clientes
-            required: true 
+        cliente: {
+            clienteId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Cliente', // Se refiere a la colección de clientes
+                required: true
+            },
+            nombre: { type: String, required: true },
+            email: { type: String, required: true }
+
         },
         productos: [
             {
@@ -22,7 +27,10 @@ const ordenProductoSchema = new mongoose.Schema(
                 precio: {
                     type: Number,
                     required: true
-                }
+                },
+                nombre: {type:String},
+                descripcion: {type:String},
+                imagen: {type:String},
             }
         ],
         total: {
