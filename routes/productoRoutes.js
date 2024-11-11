@@ -11,7 +11,8 @@ import {
     eliminarProducto, 
     subirImagen,
     obtenerProductosNvs,
-    obtenerProductosFiltrados
+    obtenerProductosFiltrados,
+    obtenerUrlImagen
 } from "../controllers/productoController.js";
 
 const router = express.Router();
@@ -19,7 +20,7 @@ const router = express.Router();
 // http://localhost:PUERTO/productos/rutas-de-abajo
 
 // Ruta para agregar un nuevo producto
-router.post('/add', checkAuth, checkRol, aggProducto);
+router.post('/add', checkAuth, checkRol, upload.single('imagen'), aggProducto);
 
 // Ruta para agregar una imagen a un producto existente
 router.post('/add-img/:id', checkAuth, checkRol , upload.single('imagen'), subirImagen);
@@ -41,5 +42,7 @@ router.delete('/delete/:id', checkAuth, checkRol, eliminarProducto);
 
 // Ruta para filtrar productos
 router.get('/',obtenerProductosFiltrados);
+
+router.get('/img', obtenerUrlImagen);
 
 export default router;

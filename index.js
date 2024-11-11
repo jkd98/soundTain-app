@@ -21,6 +21,7 @@ app.use(express.json()); // para que procese informacion json correctamente
 
 // Habilitar cookie
 app.use(cookieParser());
+app.use('/public/uploads', express.static('public/uploads')); // 'uploads' es la carpeta donde guardas las imágenes
 
 // CSRF
 //app.use( csrf({cookie:true}) );
@@ -33,11 +34,13 @@ conectarDB();
 
 // Configurar CORS
     // Dominios Permitidos
-const whiteList = [process.env.FRONTEND_URLC];
+const whiteList = [
+    process.env.FRONTEND_URLC
+];
 const corsOptions = {
     origin:function(origin,callback){
         // Comprobar en la lista blanca
-        if(whiteList.includes(origin)){
+        if(!origin || whiteList.includes(origin)){
             // Puede consultar la API
             callback(null,true);
         }else{

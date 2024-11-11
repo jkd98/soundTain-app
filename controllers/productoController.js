@@ -11,8 +11,9 @@ class Respuesta {
 const aggProducto = async (req, res, next) => {
     let respuesta = new Respuesta();
     const producto = new Producto(req.body);
-
+    console.log(req.file);
     try {
+        producto.imagen = req.file.filename;
         await producto.save();
         respuesta.status = 'success';
         respuesta.msg = 'Se agregó un producto nuevo';
@@ -63,10 +64,17 @@ const listarProductos = async (req, res, next) => {
 const obtenerProductosNvs = async (req, res) => {
     let respuesta = new Respuesta();
     try {
-        const productos = await Producto.find().limit(10);
+        // Ordena por fecha de creación en orden descendente y limita a los últimos 10
+        const productos = await Producto.find().sort({ createdAt: -1 }).limit(10);
         respuesta.status = 'success';
-        respuesta.msg = 'Productos obtenidos correctamente';
-        respuesta.data = productos;
+        respuesta.msg = 'Últimos productos obtenidos correctamente';
+        let nvProds = [];
+        
+        productos.map(prod => {
+            prod.imagen = obtenerUrlImagen(req, prod.imagen);
+            nvProds.push(prod);
+        })
+        respuesta.data = nvProds;
         res.json(respuesta);
     } catch (error) {
         console.log(error);
@@ -107,6 +115,7 @@ const obtenerProducto = async (req, res, next) => {
 // Función para editar producto
 const editarProducto = async (req, res, next) => {
     let respuesta = new Respuesta();
+    console.log(req.params)
     const { id } = req.params;
 
     try {
@@ -251,5 +260,6 @@ export {
     eliminarProducto,
     obtenerProducto,
     obtenerProductosNvs,
-    obtenerProductosFiltrados
+    obtenerProductosFiltrados,
+    obtenerUrlImagen
 };
