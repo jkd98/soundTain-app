@@ -11,7 +11,7 @@ const AdminSchema = mongoose.Schema(
         phone: { type: String, trim: true },
         token: { type: String },
         confirmado: { type: Boolean, default: false },
-        rol:{type:String, requided:true, default:'Admin'}
+        rol:{type:String, requided:true, default:'ADMTlN'}
     }, 
     {
         timestamps:true //genera columnas de creado y actualizado

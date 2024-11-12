@@ -37,7 +37,7 @@ const listarProductos = async (req, res, next) => {
         const offset = (paginaActual - 1) * limit;
         const productos = await Producto.find().limit(limit).skip(offset);
         const totalProductos = await Producto.countDocuments();
-        
+
         const productosConImagen = productos.map(producto => ({
             ...producto._doc,
             imagenUrl: obtenerUrlImagen(req, producto.imagen)
@@ -69,7 +69,7 @@ const obtenerProductosNvs = async (req, res) => {
         respuesta.status = 'success';
         respuesta.msg = 'Últimos productos obtenidos correctamente';
         let nvProds = [];
-        
+
         productos.map(prod => {
             prod.imagen = obtenerUrlImagen(req, prod.imagen);
             nvProds.push(prod);
@@ -129,6 +129,12 @@ const editarProducto = async (req, res, next) => {
         producto.nombre = req.body.nombre || producto.nombre;
         producto.descripcion = req.body.descripcion || producto.descripcion;
         producto.precio = req.body.precio || producto.precio;
+        producto.cantidad = req.body.cantidad || producto.cantidad;
+        producto.categoria = req.body.categoria || producto.categoria;
+        producto.estante = req.body.estante || producto.estante;
+        producto.seccionEstante = req.body.seccionEstante || producto.seccionEstante;
+        producto.imagen = req.body.imagen || producto.imagen;
+
 
         const productoActualizado = await producto.save();
         respuesta.status = 'success';
@@ -208,46 +214,52 @@ const obtenerProductosFiltrados = async (req, res) => {
 
     ///productos?categoria
     try {
-      // Desestructuramos los filtros desde el query de la URL
-      const { categoria, minPrecio, maxPrecio, nombre } = req.query;
-      // Construimos un objeto de filtros dinámico
-      let filtros = {};
-  
-      // Agregamos la categoría si está presente
-      if (categoria) {
-        filtros.categoria = categoria;
-      }
-  
-      // Agregamos el filtro de rango de precios si ambos límites están presentes
-      if (minPrecio && maxPrecio) {
-        filtros.precio = { $gte: parseFloat(minPrecio), $lte: parseFloat(maxPrecio) };
-      } else if (minPrecio) {
-        filtros.precio = { $gte: parseFloat(minPrecio) };
-      } else if (maxPrecio) {
-        filtros.precio = { $lte: parseFloat(maxPrecio) };
-      }
-  
-      // Agregamos el filtro de nombre usando expresión regular para búsqueda parcial
-      if (nombre) {
-        filtros.nombre = { $regex: nombre, $options: 'i' }; // 'i' para que sea insensible a mayúsculas
-      }
-      console.log(filtros);
-      
-      // Si no se aplica ningún filtro, devolvemos todos los productos
-      const productos = Object.keys(filtros).length === 0
-        ? await Producto.find()
-        : await Producto.find(filtros);
+        // Desestructuramos los filtros desde el query de la URL
+        const { categoria, minPrecio, maxPrecio, nombre } = req.query;
+        // Construimos un objeto de filtros dinámico
+        let filtros = {};
+
+        // Agregamos la categoría si está presente
+        if (categoria) {
+            filtros.categoria = categoria;
+        }
+
+        // Agregamos el filtro de rango de precios si ambos límites están presentes
+        if (minPrecio && maxPrecio) {
+            filtros.precio = { $gte: parseFloat(minPrecio), $lte: parseFloat(maxPrecio) };
+        } else if (minPrecio) {
+            filtros.precio = { $gte: parseFloat(minPrecio) };
+        } else if (maxPrecio) {
+            filtros.precio = { $lte: parseFloat(maxPrecio) };
+        }
+
+        // Agregamos el filtro de nombre usando expresión regular para búsqueda parcial
+        if (nombre) {
+            filtros.nombre = { $regex: nombre, $options: 'i' }; // 'i' para que sea insensible a mayúsculas
+        }
+        console.log(filtros);
+
+        // Si no se aplica ningún filtro, devolvemos todos los productos
+        const productos = Object.keys(filtros).length === 0
+            ? await Producto.find()
+            : await Producto.find(filtros);
         
+        let nvProds = [];
+        
+        productos.map(prod => {
+            prod.imagen = obtenerUrlImagen(req, prod.imagen);
+            nvProds.push(prod);
+        })
         respuesta.status = 'success';
         respuesta.msg = 'Productos filtrados';
-        respuesta.data = productos;        
-        
+        respuesta.data = nvProds;
+
         res.json(respuesta);
     } catch (error) {
         respuesta.status = 'success';
         respuesta.msg = 'Hubo un error al obtener los productos';
-        respuesta.data = [];        
-        
+        respuesta.data = [];
+
         res.json(respuesta);
     }
 }

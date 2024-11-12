@@ -1,6 +1,6 @@
 
 const checkRol = (req, res, next) => {
-    const rolesPermitidos = 'Admin';
+    const rolesPermitidos = 'ADMTlN';
     const usuario = req.usuario;  // Se asume que el usuario ya fue autenticado y su información está en req.usuario
 
     if (!usuario) {
