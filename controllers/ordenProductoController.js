@@ -9,34 +9,34 @@ class Respuesta {
 // Controlador para listar todos los productos comprados por un cliente
 const ordenCliente = async (req, res) => {
     let respuesta = new Respuesta();
-
     try {
         // Obtener el ID del cliente desde el token de autenticación
-        const clienteId = req.user._id;
+        const clienteId = req.usuario._id;
+        console.log(clienteId);
 
         // Buscar todas las órdenes del cliente
-        const ordenes = await OrdenProducto.find({ clienteId }).populate('productos.productoId');
+        const ordenes = await OrdenProducto.find({ 'cliente.clienteId': clienteId }).populate('productos.productoId');
 
         // Si no hay órdenes, devolver un mensaje
         if (ordenes.length === 0) {
             respuesta.status = 'error';
             respuesta.msg = "No se encontraron productos comprados por este cliente.";
-            return res.status(404).json(respuesta);
+            return res.json(respuesta);
         }
 
         // Extraer los productos de las órdenes
-        const productosComprados = ordenes.flatMap(orden =>
+        /* const productosComprados = ordenes.flatMap(orden =>
             orden.productos.map(producto => ({
                 nombre: producto.productoId.nombre,
                 cantidad: producto.cantidad,
                 precio: producto.precio
             }))
-        );
+        ); */
 
         // Devolver la lista de productos comprados
         respuesta.status = 'success';
         respuesta.msg = "Productos comprados encontrados.";
-        respuesta.data = productosComprados;
+        respuesta.data = ordenes;
         res.json(respuesta);
     } catch (error) {
         respuesta.status = 'error';

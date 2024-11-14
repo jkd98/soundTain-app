@@ -11,11 +11,11 @@ const router = express.Router();
 
 // http://localhost:PUERTO/??????/rutas-de-abajo
 
-router.get('/clientes', listarClientes);
-router.get('/clientes/:idC', obtenerCliente);
+router.get('/', listarClientes);
+router.get('/:idC', obtenerCliente);
 
-router.put('/clientes/:idC', editarCliente);
+router.put('/:idC', editarCliente);
 
-router.delete('/clientes/:idC', eliminarCliente)
+router.delete('/:idC', eliminarCliente)
 
 export default router;

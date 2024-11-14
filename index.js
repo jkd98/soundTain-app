@@ -61,7 +61,8 @@ app.use('/auth',authRouter); //aqui viene login y regisro y todo eso
 app.use('/productos',productoRouter);
 app.use('/coment',comentarioRouter);
 app.use('/carrito', carritoRouter);
-app.use('/ordenCliente', ordenRouter);
+app.use('/orden', ordenRouter);
+app.use('/clientes',clienteRouter)
 
 // puerto
 const PORT = process.env.PORT || 4000; 

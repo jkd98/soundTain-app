@@ -296,6 +296,38 @@ const logOut = async (req, res, next) => {
     req.cookies = null;
 }
 
+const obtenerPerfil = async (req, res, next) => {
+    let respuesta = new Respuesta();
+
+    try {
+        if (!req.usuario) {
+            respuesta.status = 'error';
+            respuesta.msg = 'No autenticado';
+            respuesta.data = null;
+            return res.status(401).json(respuesta);
+        }
+
+        // Enviar la información del perfil del usuario
+        respuesta.status = 'success';
+        respuesta.msg = 'Perfil obtenido correctamente';
+        respuesta.data = {
+            _id:req.usuario._id,
+            nombre: req.usuario.nombre,
+            apellido: req.usuario.apellido,
+            direccion:req.usuario.direccion,
+            email: req.usuario.email,
+            phone:req.usuario.phone
+        };
+        return res.json(respuesta);
+
+    } catch (error) {
+        respuesta.status = 'error';
+        respuesta.msg = 'Error al obtener el perfil';
+        respuesta.data = null;
+        return res.json(respuesta);
+    }
+};
+
 export {
     login,
     registro,
@@ -303,5 +335,6 @@ export {
     resetPasswd,
     comprobarToken,
     cambiarPass,
-    logOut
+    logOut,
+    obtenerPerfil
 }

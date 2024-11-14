@@ -57,23 +57,23 @@ const editarCliente = async (req, res, next) => {
     let respuesta = new Respuesta();
 
     try {
-        const id = req.params.idC;
-        const cliente = await Cliente.findById(id);
-
+        const {idC} = req.params;
+        const cliente = await Cliente.findById(idC);
+        //console.log(req.params)
         if (!cliente) {
             respuesta.status = 'error';
             respuesta.msg = 'Cliente no encontrado';
             return res.status(404).json(respuesta);
         }
 
-        const clienteAct = await Cliente.findByIdAndUpdate(id, req.body, { new: true });
+        const clienteAct = await Cliente.findByIdAndUpdate(idC, req.body, { new: true });
 
         respuesta.status = 'success';
         respuesta.msg = 'Cliente actualizado correctamente';
-        respuesta.data = clienteAct;
+        respuesta.data = null;
         res.json(respuesta);
     } catch (error) {
-        console.log(error);
+        //console.log(error);
         respuesta.status = 'error';
         respuesta.msg = 'No se pudo editar el cliente';
         res.status(500).json(respuesta);

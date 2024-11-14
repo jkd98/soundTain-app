@@ -5,6 +5,6 @@ import { ordenCliente } from "../controllers/ordenProductoController.js"; // Imp
 const router = express.Router();
 
 // Ruta para listar todos los productos comprados por un cliente
-router.get('/productos-comprados', checkAuth, ordenCliente);
+router.get('/historial-compras', checkAuth, ordenCliente);
 
 export default router;
