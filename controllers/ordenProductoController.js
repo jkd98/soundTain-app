@@ -56,7 +56,7 @@ const ordenesClientes = async (req, res) => {
         const { creadoEn, precioMin, precioMax, nombre } = req.body;
 
         // Construir un objeto de filtros dinámico (inicialmente vacío)
-        const filtros = { "cliente.clienteId": clienteId };
+        const filtros = {};
 
         // Filtrar por fecha si se proporciona
         if (creadoEn) {
