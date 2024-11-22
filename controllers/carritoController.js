@@ -2,6 +2,7 @@ import Carrito from '../models/Carrito.js'; // Asegúrate de importar correctame
 import Producto from '../models/Producto.js'; // Asegúrate de importar el modelo Producto
 import  OrdenProducto  from '../models/OrdenCliente.js';
 import { emailDetalleVenta } from '../helpers/email.js';
+import { obtenerUrlImagen } from './productoController.js';
 
 
 class Respuesta {
@@ -30,7 +31,7 @@ export const agregarAlCarrito = async (req, res) => {
         } else {
             const productoEnCarrito = carrito.productos.find(p => p.producto.equals(productoId));
             if (productoEnCarrito) {
-                productoEnCarrito.cantidad += cantidad;
+                productoEnCarrito.cantidad += Number(cantidad);
             } else {
                 carrito.productos.push({ producto: productoId, cantidad, precio: producto.precio });
             }
@@ -134,7 +135,18 @@ export const obtenerCarrito = async (req, res) => {
         // Respuesta de éxito con los datos del carrito
         respuesta.status = 'success';
         respuesta.msg = 'Carrito obtenido exitosamente';
+
+        console.log(carrito);
+
+        carrito.productos.map(item => {
+            console.log(item);
+            item.producto.imagen = obtenerUrlImagen(req, item.producto.imagen);
+        })
+
+        console.log(carrito);
+
         respuesta.data = carrito;
+
         res.json(respuesta);
     } catch (error) {
         console.log(error);
@@ -147,15 +159,13 @@ export const obtenerCarrito = async (req, res) => {
 export const realizarCompra = async (req, res) => {
     const { orden } = req.body;
     const { productos, estado, total } = orden;
-   //console.log(req);
-    const { nombre,email,_id } = req.usuario;
+    const { nombre, email, _id } = req.usuario;
     const respuesta = new Respuesta();
     
     try {
-
         const orden = new OrdenProducto({
             cliente: {
-                clienteId:_id,
+                clienteId: _id,
                 nombre,
                 email
             },
@@ -166,18 +176,35 @@ export const realizarCompra = async (req, res) => {
 
         // Guardar la orden en la base de datos
         const ordenGuardada = await orden.save();
-        
+
+        // Actualizar la cantidad de productos en el inventario
+        for (const producto of productos) {
+            const { productoId, cantidad } = producto; // Asegúrate de que `productoId` y `cantidad` estén en la orden
+            const productoDb = await Producto.findById(productoId);
+            if (!productoDb) {
+                throw new Error(`El producto con ID ${productoId} no existe`);
+            }
+            if (productoDb.cantidad < cantidad) {
+                throw new Error(`Stock insuficiente para el producto: ${productoDb.nombre}`);
+            }
+
+            // Reducir la cantidad en el inventario
+            productoDb.cantidad -= cantidad;
+            await productoDb.save();
+        }
+
         respuesta.status = 'success';
         respuesta.msg = 'Compra realizada exitosamente';
         respuesta.data = ordenGuardada;
-        
+
         emailDetalleVenta(ordenGuardada);
         
         res.json(respuesta);
     } catch (error) {
-        console.log(error);
+        console.error(error);
         respuesta.status = 'error';
         respuesta.msg = 'Error al realizar la compra';
+        respuesta.data = error.message; // Añade el mensaje de error
         res.status(500).json(respuesta);
     }
 };

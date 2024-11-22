@@ -68,13 +68,15 @@ const obtenerProductosNvs = async (req, res) => {
         const productos = await Producto.find().sort({ createdAt: -1 }).limit(10);
         respuesta.status = 'success';
         respuesta.msg = 'Últimos productos obtenidos correctamente';
+        
         let nvProds = [];
-
         productos.map(prod => {
             prod.imagen = obtenerUrlImagen(req, prod.imagen);
             nvProds.push(prod);
         })
+
         respuesta.data = nvProds;
+        
         res.json(respuesta);
     } catch (error) {
         console.log(error);
