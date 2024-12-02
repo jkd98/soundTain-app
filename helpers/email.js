@@ -117,3 +117,35 @@ export const emailDetalleVenta = async (orden) => {
   });
 
 };
+
+export const emailDescuento = async (datos) => {
+  const { email, nombre, descuento } = datos;
+
+  // configurar cliente para enviar email
+  let transport = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  // Informacion del email
+  const info = await transport.sendMail({
+    from: '"SoundTain-Instruments - Venta de Instrumentos Musicales" <cuentas@soundtain.com>',
+    to: email,
+    subject: "SoundTain-Instruments - Felicidades",
+    text: "Descuentos en SoundTain-Instruments",
+    html:
+      `
+        <p>Hola, ${nombre} el día de hoy has sido el afortunado de obtener un descuento del ${(descuento*100)}% en nuestra tienda.</p>
+        <p>Para utilizarlo, puedes ingresar a nuestro sitio oficial o dar click en el siguiente enlace: </p>
+        <a href="${process.env.FRONTEND_URL}:${process.env.PORTF}/clientes" >Relizar Compras</a>
+        
+        <p>Si quieres, puedes ignorar este mensaje</p>
+        `
+  });
+
+  //console.log(datos);
+};

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
-
+import { emailDescuento } from "../helpers/email.js";
 //schema
 const clienteSchema = mongoose.Schema(
     {
@@ -12,7 +12,11 @@ const clienteSchema = mongoose.Schema(
         phone: { type: String, trim: true },
         token: { type: String },
         confirmado: { type: Boolean, default: false },
-        rol:{type:String, default:'Cliente'}
+        rol:{type:String, default:'Cliente'},
+        descuento: {
+            checkNotify: { type: Boolean, default: false },
+            descuento: { type:Number, default:0 }
+        }
     }, 
     {
         timestamps:true //genera columnas de creado y actualizado
@@ -47,7 +51,24 @@ clienteSchema.methods.comprobarPass = function(passForm){
     return data;
 };
 
+clienteSchema.methods.notificarDescuento = function(){
+    //Enviar por correo
+    console.log('Correo...');
+    const datos = {
+        email: this.email,
+        nombre:this.nombre,
+        descuento:this.descuento.descuento
 
+    }
+
+    emailDescuento(datos);
+};
+
+clienteSchema.methods.actualizarCheckNotify = async function() {
+    this.descuento.checkNotify = true; // Actualizar el campo en la instancia actual
+    await this.save(); // Guardar los cambios en la base de datos
+    console.log(`checkNotify actualizado a true para el cliente: ${this.email}`);
+};
 
 
 // convertir el esquema a modelo para poderlo trabajar

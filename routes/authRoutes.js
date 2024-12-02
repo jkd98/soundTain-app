@@ -9,7 +9,8 @@ import {
     comprobarToken,
     cambiarPass,
     logOut,
-    obtenerPerfil
+    obtenerPerfil,
+    notifyRecibed
 } from "../controllers/authController.js"
 
 const router = express.Router();
@@ -26,5 +27,7 @@ router.post('/olvide-passwd/:tkn', cambiarPass);
 
 router.get('/logout',logOut);
 router.get('/perfil', checkAuth ,obtenerPerfil);
+
+router.get('/notify',checkAuth,notifyRecibed)
 
 export default router;

@@ -67,7 +67,7 @@ const login = async (req, res, next) => {
         const jwtkn = generarJWT(cliente._id);
         respuesta.status = 'succes';
         respuesta.msg = 'Credenciales correctas, iniciando sesión...';
-        respuesta.data = {rol:cliente.rol,tkn:jwtkn};
+        respuesta.data = { rol: cliente.rol, tkn: jwtkn };
         // Crear token y almacenarlo en cookie
         //localStorage.setItem(JSON.stringify({rol:cliente.rol}));
         res.json(respuesta);
@@ -311,12 +311,13 @@ const obtenerPerfil = async (req, res, next) => {
         respuesta.status = 'success';
         respuesta.msg = 'Perfil obtenido correctamente';
         respuesta.data = {
-            _id:req.usuario._id,
+            _id: req.usuario._id,
             nombre: req.usuario.nombre,
             apellido: req.usuario.apellido,
-            direccion:req.usuario.direccion,
+            direccion: req.usuario.direccion,
             email: req.usuario.email,
-            phone:req.usuario.phone
+            phone: req.usuario.phone,
+            descuento: req.usuario.descuento
         };
         return res.json(respuesta);
 
@@ -328,6 +329,21 @@ const obtenerPerfil = async (req, res, next) => {
     }
 };
 
+const notifyRecibed = async (req, res, next) => {
+    let respuesta = new Respuesta();
+    console.log('No notifiy');
+    const { _id } = req.usuario;
+
+    const user = await Cliente.findOne({_id});
+
+    user.actualizarCheckNotify();
+    respuesta.status = 'success';
+    respuesta.msg = 'Notificación vista';
+    respuesta.data = null;
+    return res.json(respuesta);
+}
+
+
 export {
     login,
     registro,
@@ -336,5 +352,6 @@ export {
     comprobarToken,
     cambiarPass,
     logOut,
-    obtenerPerfil
+    obtenerPerfil,
+    notifyRecibed
 }

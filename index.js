@@ -3,9 +3,11 @@ import dotenv from 'dotenv';
 import cors from "cors"; // permitir coneiones desde el domini del front
 import csrf from "csurf";
 import cookieParser from "cookie-parser";
+import schedule from 'node-schedule';
 
 
 import conectarDB from "./config/db.js";
+import { Oferta } from "./models/Oferta.js";
 
 import clienteRouter from "./routes/clienteRoutes.js";
 import productoRouter from "./routes/productoRoutes.js";
@@ -33,7 +35,7 @@ dotenv.config()
 conectarDB();
 
 // Configurar CORS
-    // Dominios Permitidos
+// Dominios Permitidos
 const whiteList = [
     process.env.FRONTEND_URLC
 ];
@@ -56,17 +58,33 @@ app.use(cors(corsOptions));
 /* app.get('/api/usuarios',(req,res)=>{
     res.send('Hola mundo') //send permite mostrar info en la pantalla
     res.json({msg:'ok'}) //  respuesta tipo json para acceder a datos
-}) */
-app.use('/auth',authRouter); //aqui viene login y regisro y todo eso
-app.use('/productos',productoRouter);
-app.use('/coment',comentarioRouter);
-app.use('/carrito', carritoRouter);
-app.use('/orden', ordenRouter);
-app.use('/clientes',clienteRouter)
+    }) */
+   app.use('/auth',authRouter); //aqui viene login y regisro y todo eso
+   app.use('/productos',productoRouter);
+   app.use('/coment',comentarioRouter);
+   app.use('/carrito', carritoRouter);
+   app.use('/orden', ordenRouter);
+   app.use('/clientes',clienteRouter)
+   
+   // puerto
+   const PORT = process.env.PORT || 4000; 
+   
+   
+   
+   //TODO: tarea programada para eliminar los descuentos a los aofrtunados
+   
+   
+   // Programa la tarea para ejecutarse a la medianoche
+   schedule.scheduleJob('50 11 * * *', () => {
+       /* const tarea = new TareaDiaria();
+       tarea.ejecutar(); */
+       const decsuentos =  new Oferta;
+       console.log('Enviando descuentos...');
+       decsuentos.obtenerDescuento();
+    });
 
-// puerto
-const PORT = process.env.PORT || 4000; 
-
-app.listen(PORT,()=>{
-    console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
+    
+    
+    app.listen(PORT,()=>{
+        console.log(`Servidor corriendo en el puerto ${PORT}`);
+    });
