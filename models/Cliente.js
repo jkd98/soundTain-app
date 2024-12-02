@@ -70,6 +70,12 @@ clienteSchema.methods.actualizarCheckNotify = async function() {
     console.log(`checkNotify actualizado a true para el cliente: ${this.email}`);
 };
 
+clienteSchema.methods.eliminarDescuento = async function() {
+    this.descuento.checkNotify = false; // Actualizar el campo en la instancia actual
+    this.descuento.descuento = 0; // Actualizar el campo en la instancia actual
+    await this.save(); // Guardar los cambios en la base de datos
+    console.log(`checkNotify actualizado a true para el cliente: ${this.email}`);
+};
 
 // convertir el esquema a modelo para poderlo trabajar
 const Cliente = mongoose.model("Cliente",clienteSchema);

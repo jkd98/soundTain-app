@@ -72,10 +72,16 @@ app.use(cors(corsOptions));
    
    
    //TODO: tarea programada para eliminar los descuentos a los aofrtunados
-   
+   schedule.scheduleJob('08 13 * * *', () => {
+    /* const tarea = new TareaDiaria();
+    tarea.ejecutar(); */
+    const decsuentos =  new Oferta;
+    console.log('Limpiando descuentos...');
+    decsuentos.limpiarDescuento();
+ });
    
    // Programa la tarea para ejecutarse a la medianoche
-   schedule.scheduleJob('50 11 * * *', () => {
+   schedule.scheduleJob('10 13 * * *', () => {
        /* const tarea = new TareaDiaria();
        tarea.ejecutar(); */
        const decsuentos =  new Oferta;
